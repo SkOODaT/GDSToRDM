@@ -17,30 +17,34 @@ headers = {
 
 @app.route("/raw", methods=["POST"])
 def raw():
-    data = request.json
-    ip_address = request.environ['REMOTE_ADDR']
-    user_agent = request.user_agent.string
+    try:
+        data = request.json
+        ip_address = request.environ['REMOTE_ADDR']
+        user_agent = request.user_agent.string
 
-    devicename = data.get('devicename')
-    trainerexp = data.get('trainerexp')
-    trainername = data.get('trainername')
-    uuid = data.get('uuid')
-    username = data.get('username')
-    trainerlvl = data.get('trainerlvl')
-    lat_target = data.get('lat_target')
-    lon_target = data.get('lon_target')
+        devicename = data.get('devicename')
+        trainerexp = data.get('trainerexp')
+        trainername = data.get('trainername')
+        uuid = data.get('uuid')
+        username = data.get('username')
+        trainerlvl = data.get('trainerlvl')
+        lat_target = data.get('lat_target')
+        lon_target = data.get('lon_target')
 
-    method = 0
-    items = data.get('contents')
-    for item in items:
-        method = item.get('method')
+        method = 0
+        items = data.get('contents')
+        for item in items:
+            method = item.get('method')
 
-    print("[GDSTORDM] /RAW", ip_address, user_agent, devicename, username, method, lat_target, lon_target)
+        print("[GDSTORDM] /RAW", ip_address, user_agent, devicename, username, method, lat_target, lon_target)
 
-    req = requests.post(url='http://'+RDM_URL+'/raw', json=data, headers=headers)
-    if req.status_code not in [200,201]:
-        print("Status code: {}".format(req.status_code))
+        req = requests.post(url='http://'+RDM_URL+'/raw', json=data, headers=headers)
+        if req.status_code not in [200,201]:
+            print("Status code: {}".format(req.status_code))
 
+    except requests.exceptions.ConnectionError as e:
+        retry_error = True
+        print("[GDSTORDM] ERROR", e)
     return 'OK'
 
 @app.route("/controler", methods=["POST"])
