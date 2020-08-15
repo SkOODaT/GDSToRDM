@@ -49,33 +49,39 @@ def raw():
 
 @app.route("/controler", methods=["POST"])
 def controler():
-    data = request.get_json(force=True)
-    ip_address = request.environ['REMOTE_ADDR']
-    user_agent = request.user_agent.string
+    try:
+        data = request.get_json(force=True)
+        ip_address = request.environ['REMOTE_ADDR']
+        user_agent = request.user_agent.string
 
-    type = data.get('type')
-    username = data.get('username')
-    uuid = data.get('uuid')
+        type = data.get('type')
+        username = data.get('username')
+        uuid = data.get('uuid')
 
-    print("[GDSTORDM] /CTR", ip_address, user_agent, uuid, username, type)
+        print("[GDSTORDM] /CTR", ip_address, user_agent, uuid, username, type)
 
-    req = requests.post(url='http://'+RDM_URL+'/controler', json=data, headers=headers)
-    if req.status_code not in [200,201]:
-        print("Status code: {}".format(req.status_code))
+        req = requests.post(url='http://'+RDM_URL+'/controler', json=data, headers=headers)
+        if req.status_code not in [200,201]:
+            print("Status code: {}".format(req.status_code))
 
-    unique_id = req.headers.get('X-Server')
+        unique_id = req.headers.get('X-Server')
 
-    json = req.json()
-    data2 = json.get('data')
+        json = req.json()
+        data2 = json.get('data')
 
-    min_level = data2.get('min_level')
-    max_level = data2.get('max_level')
-    action = data2.get('action')
-    lat = data2.get('lat')
-    lon = data2.get('lon')
+        min_level = data2.get('min_level', 0)
+        max_level = data2.get('max_level', 0)
+        action = data2.get('action')
+        lat = data2.get('lat')
+        lon = data2.get('lon')
 
-    print("[GDSTORDM] /RDM", RDM_URL, unique_id, req.elapsed, action, min_level, max_level, lat, lon)
+        print("[GDSTORDM] /RDM", RDM_URL, unique_id, req.elapsed, action, min_level, max_level, lat, lon)
 
+    except requests.exceptions.ConnectionError as ce:
+        retry_error = True
+        print("[GDSTORDM] ERROR:", ce)
+    except AttributeError as ae:
+        print("[GDSTORDM] ERROR:", ae)
     return req.content
 
 if __name__ == "__main__":
