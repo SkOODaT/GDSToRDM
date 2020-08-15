@@ -46,9 +46,11 @@ def raw():
         if req.status_code not in [200,201]:
             print("Status code: {}".format(req.status_code))
 
-    except requests.exceptions.ConnectionError as e:
+    except requests.exceptions.ConnectionError as ce:
         retry_error = True
-        print("[GDSTORDM] ERROR", e)
+        print("[GDSTORDM] ERROR:", ce)
+    except AttributeError as ae:
+        print("[GDSTORDM] ERROR:", ae)
     return 'OK'
 
 @app.route("/controler", methods=["POST"])
