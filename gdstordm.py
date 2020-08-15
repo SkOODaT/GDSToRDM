@@ -40,7 +40,7 @@ def raw():
         for item in items:
             method = item.get('method')
 
-        print("[GDSTORDM] /RAW", ip_address, user_agent, devicename, username, method, lat_target, lon_target)
+        print("[GDSTORDM] /RAW", ip_address, user_agent, devicename, username, trainerlvl, method, lat_target, lon_target)
 
         req = requests.post(url='http://'+RDM_URL+'/raw', json=data, headers=headers)
         if req.status_code not in [200,201]:
