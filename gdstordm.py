@@ -48,31 +48,49 @@ def raw():
 
     method = 0
     items = data.get('contents')
+    # print(data)
     for proto in items:
-        #decode_raw_data(proto)
         method = proto.get('method')
+        #decode(proto, method, uuid)
 
-    try:
-        req = requests.post(url='http://'+RDM_URL+'/raw', json=data, headers=headers)
-        if req.status_code not in [200,201]:
-            print("[GDSTORDM] Status code: {}".format(req.status_code))
-        print("[GDSTORDM] /RAW", devicename, ip_address, method, username, trainerlvl)
-    except urllib3.exceptions.ProtocolError as de:
-        retry_error = True
-        print("[GDSTORDM] RAW ERROR:", de)
-    except requests.exceptions.ConnectionError as ce:
-        retry_error = True
-        print("[GDSTORDM] RAW ERROR:", ce)
+    if method == 2 or method == 106 or method == 102 or method == 104 or method == 101 or method == 156:
+        try:
+            req = requests.post(url='http://'+RDM_URL+'/raw', json=data, headers=headers)
+            if req.status_code not in [200,201]:
+                print("[GDSTORDM] Status code: {}".format(req.status_code))
+            print("[GDSTORDM] /RAW", devicename, ip_address, method, username, trainerlvl)
+        except urllib3.exceptions.ProtocolError as de:
+            retry_error = True
+            print("[GDSTORDM] RAW ERROR:", de)
+        except requests.exceptions.ConnectionError as ce:
+            retry_error = True
+            print("[GDSTORDM] RAW ERROR:", ce)
+
     return 'OK'
 
-def decode_raw_data(proto):
-    for datas in proto:
-        Decode = base64.b64decode(proto['data'])
-        if proto["method"] == 2:
-            obj = GetPlayerResponse()
+def decode(proto, method, uuid):
+    try:
+        if method == 106 and uuid == 'IPHONE 7 1':
+            Decode = base64.b64decode(proto['data'])
+            obj = GetMapObjectsResponse()
             obj.ParseFromString(Decode)
             object = MessageToDict(obj)
-            pprint.pprint(object)
+            mapCells = object.get('mapCells')
+            for forts in mapCells:
+                fort = forts.get('forts')
+                if fort:
+                    pprint.pprint(fort)
+
+    except urllib3.exceptions.ProtocolError as de:
+        retry_error = True
+        print("[GDSTORDM] DECODE ERROR:", de)
+    except requests.exceptions.ConnectionError as ce:
+        retry_error = True
+        print("[GDSTORDM] Requests ERROR:", ce)
+    except TypeError as t:
+        print("[GDSTORDM] TypeError ERROR: {}".format(t))
+    except AssertionError as a:
+        print("[GDSTORDM] AssertionError ERROR: {}".format(a))
 
 @app.route("/controler", methods=["POST"])
 def controler():
@@ -94,18 +112,20 @@ def controler():
             print("[GDSTORDM] Status code: {}".format(req.status_code))
         json = req.json()
         data2 = json.get('data')
-
-        unique_id = req.headers.get('X-Server')
-        min_level = data2.get('min_level', 0)
-        max_level = data2.get('max_level', 0)
-        action = data2.get('action')
-        lat = data2.get('lat')
-        lon = data2.get('lon')
+        #print(data2)
+        #unique_id = req.headers.get('X-Server')
+        if data2:
+            min_level = data2.get('min_level', 0)
+            max_level = data2.get('max_level', 0)
+            action = data2.get('action')
+            lat = data2.get('lat')
+            lon = data2.get('lon')
+            print("[GDSTORDM] /RDM", RDM_URL, action, min_level, max_level, lat, lon)
+        else:
+            print("[GDSTORDM] No Data To Send To RDM", uuid)
 
         if req.content:
             response = req.content
-
-        print("[GDSTORDM] /RDM", RDM_URL, action, min_level, max_level, lat, lon)
 
     except urllib3.exceptions.ProtocolError as de:
         retry_error = True
