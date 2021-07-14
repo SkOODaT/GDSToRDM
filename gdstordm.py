@@ -35,6 +35,26 @@ def raw():
     lat_target = data.get('lat_target')
     lon_target = data.get('lon_target')
 
+    inventory = data.get('inventory')
+
+    inventoryNormLure = ''
+    inventoryIceLure = ''
+    inventoryMossLure = ''
+    inventoryMagLure = ''
+    inventoryRainLure = ''
+
+    if inventory:
+        if inventory.get('501'):
+            inventoryNormLure = 'NORM: {}'.format(inventory.get('501'))
+        if inventory.get('502'):
+            inventoryIceLure = 'ICE: {}'.format(inventory.get('502'))
+        if inventory.get('503'):
+            inventoryMossLure = 'MOSS: {}'.format(inventory.get('503'))
+        if inventory.get('504'):
+            inventoryMagLure = 'MAG: {}'.format(inventory.get('504'))
+        if inventory.get('505'):
+            inventoryRainLure = 'RAIN: {}'.format(inventory.get('505'))
+
     method = 0
     items = data.get('contents')
     for proto in items:
@@ -44,7 +64,7 @@ def raw():
         req = requests.post(url='http://'+RDM_URL+'/raw', json=data, headers=headers)
         if req.status_code not in [200,201]:
             print("[GDSTORDM] Status code: {}".format(req.status_code))
-        print("[GDSTORDM] /RAW", devicename, ip_address, method, username, trainerlvl)
+        print("[GDSTORDM] /RAW", devicename, ip_address, method, username, trainerlvl, inventoryNormLure, inventoryIceLure, inventoryMossLure,  inventoryMagLure, inventoryRainLure)
     except urllib3.exceptions.ProtocolError as de:
         retry_error = True
         print("[GDSTORDM] RAW ERROR:", de)
